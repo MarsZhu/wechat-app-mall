@@ -35,17 +35,16 @@ function wxpay(type, money, orderId, redirectUrl, data) {
       wx.requestPayment({
         timeStamp: res.data.timeStamp,
         nonceStr: res.data.nonceStr,
-        package: 'prepay_id=' + res.data.prepayId,
-        signType: 'MD5',
-        paySign: res.data.sign,
+        package: res.data.package,
+        signType: res.data.signType,
+        paySign: res.data.paySign,
         fail: function (aaa) {
+          console.error(aaa)
           wx.showToast({
             title: '支付失败:' + aaa
           })
         },
         success: function () {
-          // 保存 formid
-          WXAPI.addTempleMsgFormid(wx.getStorageSync('token'), 'pay', res.data.prepayId)
           // 提示支付成功
           wx.showToast({
             title: '支付成功'
