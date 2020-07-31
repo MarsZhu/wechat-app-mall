@@ -1,9 +1,6 @@
-const app = getApp()
-const CONFIG = require('../../config.js')
 const WXAPI = require('apifm-wxapi')
 const AUTH = require('../../utils/auth')
-
-import imageUtil from '../../utils/image'
+const ImageUtil = require('../../utils/image')
 
 Page({
 
@@ -11,6 +8,8 @@ Page({
    * 页面的初始数据
    */
   data: {
+    wxlogin: true,
+
     applyStatus: -2, // -1 表示未申请，0 审核中 1 不通过 2 通过
     applyInfo: {},
     canvasHeight: 0,
@@ -38,30 +37,11 @@ Page({
   onShow() {
     const _this = this
     AUTH.checkHasLogined().then(isLogined => {
+      this.setData({
+        wxlogin: isLogined
+      })
       if (isLogined) {
         this.doneShow();
-      } else {
-        wx.showModal({
-          title: '提示',
-          content: '本次操作需要您的登录授权',
-          cancelText: '暂不登录',
-          confirmText: '前往登录',
-          success(res) {
-            if (res.confirm) {
-              wx.switchTab({
-                url: "/pages/my/index"
-              })
-            } else {
-              if (getCurrentPages().length == 1) {
-                wx.switchTab({
-                  url: "/pages/index/index"
-                })
-              } else {
-                wx.navigateBack()
-              }
-            }
-          }
-        })
       }
     })
   },
@@ -71,7 +51,9 @@ Page({
     WXAPI.fxApplyProgress(wx.getStorageSync('token')).then(res => {
       let applyStatus = userDetail.data.base.isSeller ? 2 : -1
       if (res.code == 2000) {
-        app.goLoginPageTimeOut()
+        this.setData({
+          wxlogin: false
+        })
         return
       }
       if (res.code === 700) {
@@ -108,6 +90,7 @@ Page({
       scene: 'inviter_id=' + wx.getStorageSync('uid'),
       page: 'pages/index/index',
       is_hyaline: true,
+      autoColor: true,
       expireHours: 1
     }).then(res => {
       wx.hideLoading()
@@ -122,7 +105,7 @@ Page({
     wx.getImageInfo({
       src: qrcode,
       success: (res) => {
-        const imageSize = imageUtil(res.width, res.height)
+        const imageSize = ImageUtil.imageUtil(res.width, res.height)
         const qrcodeWidth = imageSize.windowWidth / 2
         _this.setData({
           canvasHeight: qrcodeWidth
@@ -138,40 +121,9 @@ Page({
       }
     })
   },
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide: function () {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload: function () {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh: function () {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom: function () {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage: function () {
+  onShareAppMessage() {    
     return {
-      title: '"' + wx.getStorageSync('mallName') + '" ' + CONFIG.shareProfile,
+      title: '"' + wx.getStorageSync('mallName') + '" ' + wx.getStorageSync('share_profile'),
       path: '/pages/index/index?inviter_id=' + wx.getStorageSync('uid'),
       success: function (res) {
         // 转发成功
@@ -182,13 +134,11 @@ Page({
     }
   },
   bindSave: function (e) {
-    WXAPI.addTempleMsgFormid(wx.getStorageSync('token'), 'form', e.detail.formId)
     wx.navigateTo({
       url: "/pages/fx/apply"
     })
   },
   goShop: function (e) {
-    WXAPI.addTempleMsgFormid(wx.getStorageSync('token'), 'form', e.detail.formId)
     wx.switchTab({
       url: '/pages/index/index',
     })
@@ -223,5 +173,20 @@ Page({
     wx.switchTab({
       url: '/pages/index/index',
     });
-  }
+  },
+  cancelLogin() {
+    wx.switchTab({
+      url: '/pages/my/index'
+    })
+  },
+  processLogin(e) {
+    if (!e.detail.userInfo) {
+      wx.showToast({
+        title: '已取消',
+        icon: 'none',
+      })
+      return;
+    }
+    AUTH.register(this);
+  },
 })

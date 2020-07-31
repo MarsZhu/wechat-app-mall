@@ -5,15 +5,18 @@
 		"es6": true,
 		"enhance": true,
 		"postcss": false,
+		"preloadBackgroundData": false,
 		"minified": true,
 		"newFeature": true,
 		"coverView": true,
 		"nodeModules": false,
 		"autoAudits": false,
+		"showShadowRootInWxmlPanel": true,
 		"scopeDataCheck": false,
 		"checkInvalidKey": true,
 		"checkSiteMap": true,
 		"uploadWithSourceMap": true,
+		"compileHotReLoad": false,
 		"babelSetting": {
 			"ignore": [],
 			"disablePlugins": [],
@@ -21,12 +24,11 @@
 		},
 		"useIsolateContext": true,
 		"useCompilerModule": false,
-		"userConfirmedUseCompilerModuleSwitch": false,
-		"compileHotReLoad": false
+		"userConfirmedUseCompilerModuleSwitch": false
 	},
 	"compileType": "miniprogram",
-	"libVersion": "2.9.2",
-	"appid": "wx0953ec0f670e42da",
+	"libVersion": "2.10.4",
+	"appid": "wx50879a6b3b1d72f5",
 	"projectname": "%E5%A4%A9%E4%BD%BF%E7%AB%A5%E8%A3%85",
 	"scripts": {},
 	"simulatorType": "wechat",
@@ -45,6 +47,10 @@
 			"list": []
 		},
 		"game": {
+			"current": -1,
+			"list": []
+		},
+		"gamePlugin": {
 			"current": -1,
 			"list": []
 		},
@@ -104,6 +110,13 @@
 					"id": -1,
 					"name": "分销中心",
 					"pathName": "pages/fx/apply-status",
+					"query": "",
+					"scene": null
+				},
+				{
+					"id": -1,
+					"name": "notice",
+					"pathName": "pages/notice/index",
 					"scene": null
 				}
 			]

@@ -10,6 +10,7 @@ Page({
    * 页面的初始数据
    */
   data: {
+    wxlogin: true,
     balance: 0.00,
     freeze: 0,
     score: 0,
@@ -40,15 +41,6 @@ Page({
         });
       }
     });
-    let rechargeOpen = wx.getStorageSync('RECHARGE_OPEN')
-    if (rechargeOpen && rechargeOpen == "1") {
-      rechargeOpen = true
-    } else {
-      rechargeOpen = false
-    }
-    this.setData({
-      rechargeOpen: rechargeOpen
-    })
   },
 
   /**
@@ -63,24 +55,11 @@ Page({
    */
   onShow: function () {
     AUTH.checkHasLogined().then(isLogined => {
+      this.setData({
+        wxlogin: isLogined
+      })
       if (isLogined) {
         this.doneShow();
-      } else {
-        wx.showModal({
-          title: '提示',
-          content: '本次操作需要您的登录授权',
-          cancelText: '暂不登录',
-          confirmText: '前往登录',
-          success(res) {
-            if (res.confirm) {
-              wx.switchTab({
-                url: "/pages/my/index"
-              })
-            } else {
-              wx.navigateBack()
-            }
-          }
-        })
       }
     })
   },
@@ -88,7 +67,9 @@ Page({
     const _this = this
     const token = wx.getStorageSync('token')
     if (!token) {
-      app.goLoginPageTimeOut()
+      this.setData({
+        wxlogin: false
+      })
       return
     }
     WXAPI.userAmount(token).then(function (res) {
@@ -100,7 +81,9 @@ Page({
         return
       }
       if (res.code == 2000) {
-        app.goLoginPageTimeOut()
+        this.setData({
+          wxlogin: false
+        })
         return
       }
       if (res.code == 0) {
@@ -127,14 +110,14 @@ Page({
   },
   cashLogs() {
     const _this = this
-    WXAPI.cashLogs({
+    WXAPI.cashLogsV2({
       token: wx.getStorageSync('token'),
       page:1,
       pageSize:50
     }).then(res => {
       if (res.code == 0) {
         _this.setData({
-          cashlogs: res.data
+          cashlogs: res.data.result
         })
       }
     })
@@ -168,55 +151,17 @@ Page({
     })
   },
 
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide: function () {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload: function () {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh: function () {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom: function () {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage: function () {
-
-  },
-
   recharge: function (e) {
-    WXAPI.addTempleMsgFormid(wx.getStorageSync('token'), 'form', e.detail.formId)
     wx.navigateTo({
       url: "/pages/recharge/index"
     })
   },
   withdraw: function (e) {
-    WXAPI.addTempleMsgFormid(wx.getStorageSync('token'), 'form', e.detail.formId)
     wx.navigateTo({
       url: "/pages/withdraw/index"
     })
   },
   payDeposit: function (e) {
-    WXAPI.addTempleMsgFormid(wx.getStorageSync('token'), 'form', e.detail.formId)
     wx.navigateTo({
       url: "/pages/deposit/pay"
     })
@@ -227,5 +172,20 @@ Page({
       activeIndex: e.currentTarget.id
     });
     this.fetchTabData(e.currentTarget.id)
-  }
+  },
+  cancelLogin(){
+    wx.switchTab({
+      url: '/pages/my/index'
+    })
+  },
+  processLogin(e){
+    if (!e.detail.userInfo) {
+      wx.showToast({
+        title: '已取消',
+        icon: 'none',
+      })
+      return;
+    }
+    AUTH.register(this);
+  },
 })
